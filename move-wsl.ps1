@@ -1,3 +1,4 @@
+#!/bin/env powershell
 Set-StrictMode -Version latest;
 
 function Cleanup()
@@ -83,8 +84,12 @@ if (-not(Test-Path $targetFolder))
 # Export WSL image to tar file
 $tempFile = Join-Path $targetFolder "$($distro).tar";
 Write-Host "Exporting VHDX to `"$($tempFile)`" ...";
-& cmd /c wsl --export $distro "`"$tempFile`"";
-if (-not($? -and (Test-Path $tempFile -PathType Leaf)))
+#echo ${tempFile};
+#& cmd /c wsl --export $distro "`"$tempFile`"";
+Write-Host "Shutdown"
+wsl.exe --terminate $distro;
+wsl.exe --export $distro $tempFile;
+if (-not($? -and (Test-Path ${tempFile} -PathType Leaf)))
 {
     Write-Error "ERROR: Export failed";
     Cleanup;
@@ -93,11 +98,11 @@ if (-not($? -and (Test-Path $tempFile -PathType Leaf)))
 
 # Unregister WSL so we can register it again at new location
 Write-Host "Unregistering WSL ..."
-& cmd /c wsl --unregister $distro | Out-Null
+wsl.exe --unregister $distro
 
 # Importing WSL at new location
 Write-Host "Importing $distro from $targetFolder..."
-& cmd /c wsl --import $distro $targetFolder "`"$tempFile`"" --version $distros[$selected -1].VERSION;
+wsl.exe --import $distro $targetFolder $tempFile --version $distros[$selected -1].VERSION;
 
 # Validating
 $newDistros = @(Get-Distros);
