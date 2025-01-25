@@ -82,13 +82,11 @@ if (-not(Test-Path $targetFolder))
 }
 
 # Export WSL image to tar file
-$tempFile = Join-Path $targetFolder "$($distro).tar";
-Write-Host "Exporting VHDX to `"$($tempFile)`" ...";
-#echo ${tempFile};
-#& cmd /c wsl --export $distro "`"$tempFile`"";
-Write-Host "Shutdown"
-wsl.exe --terminate $distro;
-wsl.exe --export $distro $tempFile;
+$tempFile = Join-Path "$targetFolder" "$($distro).tar";
+Write-Host "Exporting VHDX to '$($tempFile)' ...";
+Write-Host "Terminate $distro";
+wsl.exe --terminate "$distro";
+wsl.exe --export "$distro" "$tempFile";
 if (-not($? -and (Test-Path ${tempFile} -PathType Leaf)))
 {
     Write-Error "ERROR: Export failed";
@@ -97,12 +95,12 @@ if (-not($? -and (Test-Path ${tempFile} -PathType Leaf)))
 }
 
 # Unregister WSL so we can register it again at new location
-Write-Host "Unregistering WSL ..."
-wsl.exe --unregister $distro
+Write-Host "Unregistering WSL ...";
+wsl.exe --unregister "$distro";
 
 # Importing WSL at new location
-Write-Host "Importing $distro from $targetFolder..."
-wsl.exe --import $distro $targetFolder $tempFile --version $distros[$selected -1].VERSION;
+Write-Host "Importing $distro from $targetFolder...";
+wsl.exe --import "$distro" "$targetFolder" "$tempFile" --version "$($distros[$selected -1].VERSION)";
 
 # Validating
 $newDistros = @(Get-Distros);
